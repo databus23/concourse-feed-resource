@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'concourse-fuselage'
+require 'open-uri'
+require 'rss'
+
+class Check < Fuselage::Check
+  def versions
+    source["feed"]
+    feed = RSS::Parser.parse(open(source["feed"]), false)
+    feed.items.map {|entry| {"entry" => entry.id.content}}
+  end
+
+  def latest
+    versions.first
+  end
+
+  def since(version)
+    index = versions.index(version)
+    return [] if index == 0
+    versions[0..versions.index(version)-1]
+  end
+end
+
+unless Check.new.run
+  STDERR.puts "Failed to check feed"
+  abort
+end

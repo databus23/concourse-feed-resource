@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+require 'concourse-fuselage'
+require 'open-uri'
+require 'rss'
+
+class In < Fuselage::In
+
+	def item
+		@item ||= begin 
+								feed = RSS::Parser.parse(open(source["feed"]), false)
+								feed.items.find {|item| item.id.content == version["entry"] }
+							end
+	end
+
+	def fetch!
+		raise "#{version} not found" unless item
+		File.write ::File.join(workdir, "id"), item.id.content
+		File.write ::File.join(workdir, "title"), item.title.content
+		version
+	end
+
+	def metadata
+		[
+			{"name": "title", "value": item.title.content},
+	    {"name": "updated", "value": item.updated.content}
+		]
+	end
+
+end
+
+unless In.new.run
+  STDERR.puts "Failed to fetch feed entry"
+  abort
+end
