@@ -7,7 +7,7 @@ require 'rss'
 class Check < Fuselage::Check
   def versions
     source["feed"]
-    feed = RSS::Parser.parse(open(source["feed"]), false)
+    feed = RSS::Parser.parse(URI.open(source["feed"]), false)
     feed.items.map {|entry| {"entry" => entry.id.content}}
   end
 
@@ -17,8 +17,9 @@ class Check < Fuselage::Check
 
   def since(version)
     index = versions.index(version)
+    return versions if index.nil?
     return [] if index == 0
-    versions[0..versions.index(version)-1]
+    versions[0..index-1]
   end
 end
 

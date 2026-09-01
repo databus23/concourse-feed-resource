@@ -8,7 +8,7 @@ class In < Fuselage::In
 
 	def item
 		@item ||= begin 
-								feed = RSS::Parser.parse(open(source["feed"]), false)
+								feed = RSS::Parser.parse(URI.open(source["feed"]), false)
 								feed.items.find {|item| item.id.content == version["entry"] }
 							end
 	end
